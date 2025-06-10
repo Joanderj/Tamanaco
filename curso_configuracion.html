@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso de Configuración | Tamanaco</title>
+  <link href="public/css/tailwind.min.css" rel="stylesheet">
+  <link href="public/lib/fontawesome-free-6.7.2-web/css/all.min.css" rel="stylesheet">
+   <style>
+    .nav-link {
+      position: relative;
+      font-size: 1.125rem; /* text-lg */
+      font-weight: 600;
+      padding-bottom: 4px;
+      color: #4B5563; /* gray-700 */
+      transition: color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: #dc2626; /* red-600 */
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background-color: #dc2626; /* red-600 */
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .nav-link.active {
+      color: #dc2626;
+    }
+
+    .nav-link.active::after {
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <!-- Header -->
+   <!-- HEADER CON MENÚ -->
+  <header class="bg-white shadow-sm border-b-4 border-red-600">
+    <div class="container mx-auto px-6 py-5 flex justify-between items-center">
+      
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <img onclick="window.location.href='index.php'" src="public/img/logo2.jpg" alt="Tamanaco Logo" class="h-8">
+      </div>
+
+      <!-- Menú de navegación -->
+      <nav class="flex gap-8">
+        <a href="#" class="nav-link active">Configuración del Sistema</a>
+        <a href="curso_autogestion.html" class="nav-link">Autogestión y Permisos</a>
+        <a href="curso_mantenimiento.html" class="nav-link">Gestión de Mantenimientos</a>
+      </nav>
+    </div>
+  </header>
+
+ <!-- Título de Introducción con fondo rojo claro y animación -->
+<section class="bg-red-50 py-10 px-6">
+  <div class="max-w-5xl mx-auto text-center fade-in-up">
+    <p class="mt-4 text-lg md:text-xl text-gray-700 font-medium">
+      Domina desde la estructura empresarial hasta los catálogos técnicos con un enfoque profesional e integral.
+    </p>
+  </div>
+</section>
+
+<!-- ANIMACIÓN CSS PURA -->
+<style>
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in-up {
+  animation: fadeInUp 1s ease-out forwards;
+}
+</style>
+
+<section class="max-w-7xl mx-auto px-6 py-20">
+  <div class="grid grid-cols-1 md:grid-cols-2 rounded-2xl overflow-hidden shadow-xl">
+
+    <!-- Columna de Imagen con título y descripción -->
+<div class="relative bg-cover bg-center" style="background-image: url('public/img/mujer\ traje\ formal.jpeg'); min-height: 800px;">
+    <!-- Capa de oscurecimiento -->
+    <div class="absolute inset-0 bg-black opacity-40"></div>
+<!-- Título alineado a la izquierda con ancho controlado -->
+<div class="absolute top-6 left-10 max-w-[30%] z-20 bg-transparent text-white font-bold text-2xl md:text-2xl lg:text-2xl px-4 py-2 space-y-4">
+    <div class="relative top-0 "> Configura</div>
+    <div class="relative top-1 "> y personaliza</div>
+    <div class="relative top-2 "> todos los</div>
+    <div class="relative top-3 "> módulos clave</div>
+</div>
+      <!-- Descripción -->
+      <div class="absolute bottom-6 left-6 z-20 bg-transparent text-white text-sm px-4 py-2  max-w-xs">
+        Aprende a estructurar tu sistema de forma profesional desde la base.
+      </div>
+    </div>
+
+    <!-- Columna de apartados con tarjetas cuadradas pegadas -->
+    <div class="grid grid-cols-1 gap-px bg-gray-200 h-full">
+      
+      <!-- Tarjeta -->
+      <div class="bg-white px-6 py-5 hover:bg-gray-50 transition cursor-pointer group" onclick="toggleInfo(0)">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-800 group-hover:text-red-600">Configuración de Empresa</h3>
+          <span class="text-xl text-gray-400 group-hover:text-red-600 transition icon">+</span>
+        </div>
+        <div class="hidden mt-3 text-sm text-gray-600 info">Define los datos fundamentales de tu empresa para comenzar con base sólida.</div>
+      </div>
+
+      <div class="bg-white px-6 py-5 hover:bg-gray-50 transition cursor-pointer group" onclick="toggleInfo(1)">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-800 group-hover:text-red-600">Gestión de Sedes</h3>
+          <span class="text-xl text-gray-400 group-hover:text-red-600 transition icon">+</span>
+        </div>
+        <div class="hidden mt-3 text-sm text-gray-600 info">Organiza sedes físicas o virtuales para una mejor distribución operativa.</div>
+      </div>
+
+      <div class="bg-white px-6 py-5 hover:bg-gray-50 transition cursor-pointer group" onclick="toggleInfo(2)">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-800 group-hover:text-red-600">Catálogo Técnico</h3>
+          <span class="text-xl text-gray-400 group-hover:text-red-600 transition icon">+</span>
+        </div>
+        <div class="hidden mt-3 text-sm text-gray-600 info">Clasifica productos, herramientas, modelos y servicios de forma precisa.</div>
+      </div>
+
+      <div class="bg-white px-6 py-5 hover:bg-gray-50 transition cursor-pointer group" onclick="toggleInfo(3)">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-800 group-hover:text-red-600">Almacenes e Inventario</h3>
+          <span class="text-xl text-gray-400 group-hover:text-red-600 transition icon">+</span>
+        </div>
+        <div class="hidden mt-3 text-sm text-gray-600 info">Controla entradas, salidas y reordenamiento de inventario por almacén.</div>
+      </div>
+
+      <div class="bg-white px-6 py-5 hover:bg-gray-50 transition cursor-pointer group rounded-br-3xl" onclick="toggleInfo(4)">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-800 group-hover:text-red-600">Usuarios y Permisos</h3>
+          <span class="text-xl text-gray-400 group-hover:text-red-600 transition icon">+</span>
+        </div>
+        <div class="hidden mt-3 text-sm text-gray-600 info">Define roles, gestiona permisos y protege tu plataforma con accesos seguros.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Script JavaScript -->
+<script>
+  function toggleInfo(index) {
+    const infos = document.querySelectorAll('.info');
+    const icons = document.querySelectorAll('.icon');
+    
+    infos.forEach((info, i) => {
+      if (i === index) {
+        const isHidden = info.classList.contains('hidden');
+        infos.forEach(el => el.classList.add('hidden'));
+        icons.forEach(el => el.textContent = '+');
+        if (isHidden) {
+          info.classList.remove('hidden');
+          icons[index].textContent = '−';
+        }
+      } else {
+        info.classList.add('hidden');
+        icons[i].textContent = '+';
+      }
+    });
+  }
+</script>
+<section class="max-w-6xl mx-auto px-6 py-16">
+  <div class="relative overflow-hidden bg-white shadow-xl rounded-3xl flex flex-col md:flex-row items-stretch min-h-[450px]">
+
+    <!-- Imagen izquierda -->
+    <div id="carousel-image" class="w-full md:w-1/2 bg-cover bg-center transition-all duration-700 ease-in-out rounded-l-3xl" style="background-image: url('public/img/gallery.jpg'); min-height: 400px;">
+    </div>
+
+    <!-- Contenido derecho -->
+    <div class="w-full md:w-1/2 p-10 flex flex-col justify-center transition-all duration-700 ease-in-out" id="carousel-content">
+      <p class="text-red-600 font-semibold uppercase tracking-wider mb-2">Paso 1</p>
+      <h2 class="text-3xl font-bold text-gray-800 mb-4 transition-opacity duration-500">Configuración empresarial sólida</h2>
+      <p class="text-gray-600 text-base leading-relaxed">Establece la estructura base de tu empresa: desde identidad visual hasta datos clave de contacto y localización. Inicia con fuerza y precisión.</p>
+    </div>
+
+    <!-- Navegación -->
+    <div class="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex gap-2">
+      <button onclick="changeSlide(0)" class="w-8 h-8 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-full transition">1</button>
+      <button onclick="changeSlide(1)" class="w-8 h-8 text-sm font-bold text-gray-700 bg-gray-200 hover:bg-red-100 rounded-full transition">2</button>
+      <button onclick="changeSlide(2)" class="w-8 h-8 text-sm font-bold text-gray-700 bg-gray-200 hover:bg-red-100 rounded-full transition">3</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  const slides = [
+    {
+      image: "public/img/gallery.jpg",
+      title: "Configuración empresarial sólida",
+      subtitle: "Paso 1",
+      description: "Establece la estructura base de tu empresa: desde identidad visual hasta datos clave de contacto y localización. Inicia con fuerza y precisión."
+    },
+    {
+      image: "public/img/gallery.jpg",
+      title: "Gestión de sedes optimizada",
+      subtitle: "Paso 2",
+      description: "Organiza de forma eficiente tus sedes y sucursales. Controla ubicaciones físicas o virtuales para mejorar la trazabilidad operativa."
+    },
+    {
+      image: "public/img/gallery.jpg",
+      title: "Inventario y catálogos técnicos",
+      subtitle: "Paso 3",
+      description: "Administra productos, herramientas y servicios. Estructura catálogos técnicos claros que potencien tu operación."
+    }
+  ];
+
+  function changeSlide(index) {
+    const content = document.getElementById('carousel-content');
+    const image = document.getElementById('carousel-image');
+
+    // Transición de opacidad rápida
+    content.classList.add('opacity-0');
+    setTimeout(() => {
+      content.querySelector('p').textContent = slides[index].subtitle;
+      content.querySelector('h2').textContent = slides[index].title;
+      content.querySelector('p:last-child').textContent = slides[index].description;
+      image.style.backgroundImage = `url('${slides[index].image}')`;
+
+      content.classList.remove('opacity-0');
+    }, 300);
+  }
+</script>
+<section class="max-w-7xl mx-auto px-6 py-20 ">
+  <!-- Título Principal -->
+  <div class="text-center mb-16">
+    <h2 class="text-4xl font-bold text-gray-800 mb-4">¿Cómo funciona el sistema?</h2>
+    <p class="text-gray-500 text-lg">Una vista clara de cómo llevar tu operación al siguiente nivel.</p>
+  </div>
+
+  <!-- Tres Pasos con Números -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
+    <!-- Paso 1 -->
+    <div class="flex flex-col items-center text-center">
+      <div class="w-16 h-16 flex items-center justify-center rounded-full bg-red-600 text-white text-xl font-bold mb-4 shadow-lg">1</div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-2">Registro</h3>
+      <p class="text-gray-500">Ingresa la información esencial de tu empresa, sedes y usuarios.</p>
+    </div>
+
+    <!-- Paso 2 -->
+    <div class="flex flex-col items-center text-center">
+      <div class="w-16 h-16 flex items-center justify-center rounded-full bg-red-600 text-white text-xl font-bold mb-4 shadow-lg">2</div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-2">Configuración</h3>
+      <p class="text-gray-500">Define productos, herramientas, catálogos y almacenes según tus necesidades.</p>
+    </div>
+
+    <!-- Paso 3 -->
+    <div class="flex flex-col items-center text-center">
+      <div class="w-16 h-16 flex items-center justify-center rounded-full bg-red-600 text-white text-xl font-bold mb-4 shadow-lg">3</div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-2">Gestión</h3>
+      <p class="text-gray-500">Controla inventarios, tareas y permisos desde un solo lugar.</p>
+    </div>
+  </div>
+
+  <!-- Sección Inferior: Texto + Imagen -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <!-- Texto Izquierda -->
+    <div>
+      <h3 class="text-3xl font-bold text-gray-800 mb-4">Potencia tu productividad con una gestión inteligente de software</h3>
+      <p class="text-gray-600 text-lg leading-relaxed mb-4">
+        Un sistema de gestión eficiente no solo optimiza procesos, sino que transforma la manera en que trabajas y tomas decisiones. Con las herramientas adecuadas, puedes reducir errores, mejorar la colaboración y tener un control total sobre cada aspecto de tu operación. La tecnología bien aplicada no es un lujo, sino la clave para alcanzar mayor eficiencia y bienestar en tu día a día.
+Si quieres un enfoque más técnico o emocional, dime qué estilo prefieres y ajusto el tono.
+      </p>
+       <ul class="list-disc list-inside text-gray-700 space-y-2 cursor-pointer hover:animate-fadeIn mb-4">
+      <li class="text-gray-600 text-lg leading-relaxed">Control de stock en tiempo real</li>
+      <li class="text-gray-600 text-lg leading-relaxed">Alertas automáticas para reabastecimiento</li>
+      <li class="text-gray-600 text-lg leading-relaxed">Movimientos entre almacenes</li>
+    </ul>
+      <p class="text-gray-600 text-lg leading-relaxed">
+        Un sistema de gestión eficiente no solo optimiza procesos, sino que transforma la manera en que trabajas y tomas decisiones. Con las herramientas adecuadas, puedes reducir errores, mejorar la colaboración y tener un control total sobre cada aspecto de tu operación. La tecnología bien aplicada no es un lujo, sino la clave para alcanzar mayor eficiencia y bienestar en tu día a día.
+Si quieres un enfoque más técnico o emocional, dime qué estilo prefieres y ajusto el tono.
+      </p>
+      
+    </div>
+
+    <!-- Imagen Derecha -->
+    <div class="rounded-2xl overflow-hidden shadow-lg">
+      <img src="public/img/gallery.jpg" alt="Optimización de procesos" class="w-full h-full object-cover">
+    </div>
+  </div>
+</section>
+<div class="max-w-7xl mx-auto px-6 py-12 bg-gray-100">
+  <h1 class="text-5xl font-extrabold text-gray-900 text-center mb-12 tracking-tight">
+    Presentación de Módulos Premium
+  </h1>
+</div>
+
+<div class="max-w-7xl mx-auto px-6 py-2 grid gap-10 grid-cols-1 md:grid-cols-3 bg-gray-100">
+
+  <!-- Card 1 -->
+  <div>
+    <img src="public/img/carrusel1.jpg" alt="Módulo Imagen 1" class="w-full h-48 object-cover rounded-md mb-4" />
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2 cursor-pointer hover:animate-pulse">
+      Módulo de Gestión
+    </h2>
+    <p class="text-gray-600 mb-4 cursor-pointer hover:animate-fadeIn">
+      Controla todas las tareas y procesos con un sistema intuitivo y eficiente. Este módulo permite gestionar usuarios, permisos y roles, asegurando que cada tarea sea asignada correctamente y con seguimiento detallado, además cuenta con integración completa con reportes personalizados y estadísticas en tiempo real para una mejor toma de decisiones estratégicas.
+    </p>
+    <ul class="list-disc list-inside text-gray-700 space-y-2 cursor-pointer hover:animate-fadeIn mb-4">
+      <li>Planificación rápida y sencilla</li>
+      <li>Acceso multiusuario con permisos</li>
+      <li>Reportes y estadísticas integradas</li>
+    </ul>
+    
+  </div>
+
+  <!-- Card 2 -->
+  <div>
+    <img src="public/img/carrusel2.jpeg" alt="Módulo Imagen 2" class="w-full h-48 object-cover rounded-md mb-4" />
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2 cursor-pointer hover:animate-pulse">
+      Módulo de Inventario
+    </h2>
+    <p class="text-gray-600 mb-4 cursor-pointer hover:animate-fadeIn">
+      Gestiona entradas y salidas de productos, herramientas y repuestos con control exhaustivo de stock. El módulo permite crear alertas automáticas para niveles mínimos, realizar movimientos entre almacenes y generar reportes históricos que facilitan el control y la planificación logística. La interfaz es amigable y permite búsquedas rápidas y filtros avanzados.
+    </p>
+    <ul class="list-disc list-inside text-gray-700 space-y-2 cursor-pointer hover:animate-fadeIn mb-4">
+      <li>Control de stock en tiempo real</li>
+      <li>Alertas automáticas para reabastecimiento</li>
+      <li>Movimientos entre almacenes</li>
+    </ul>
+  </div>
+
+  <!-- Card 3 -->
+  <div>
+    <img src="public/img/carrusel3.jpg" alt="Módulo Imagen 3" class="w-full h-48 object-cover rounded-md mb-4" />
+    <h2 class="text-2xl font-semibold text-gray-800 mb-2 cursor-pointer hover:animate-pulse">
+      Módulo de Reportes
+    </h2>
+    <p class="text-gray-600 mb-4 cursor-pointer hover:animate-fadeIn">
+      Accede a reportes detallados de todas las operaciones realizadas en el sistema, con filtros personalizables por fecha, usuario, tipo de mantenimiento y más. Este módulo facilita la exportación de datos en formatos PDF y Excel, permitiendo a los administradores y gerentes tomar decisiones basadas en información precisa y actualizada, todo con una interfaz sencilla y visualmente atractiva.
+    </p>
+    <ul class="list-disc list-inside text-gray-700 space-y-2 cursor-pointer hover:animate-fadeIn mb-4">
+      <li>Filtros avanzados y personalizables</li>
+      <li>Exportación en PDF y Excel</li>
+      <li>Visualización gráfica y tabular</li>
+    </ul>
+  </div>
+
+</div>
+
+<style>
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-in-out forwards;
+}
+</style>
+
+<!-- Título -->
+<div class="max-w-7xl mx-auto px-6 py-12 ">
+ <h2 class="text-4xl font-extrabold text-left text-gray-800 border-l-4 border-blue-500 pl-4 mb-16 tracking-tight">
+    Menús de Empresa
+  </h2>
+  <!-- Contenedor de ítems -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-10 justify-items-center">
+
+    <!-- Ítem -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-300 flex items-center justify-center shadow-lg group-hover:shadow-blue-500/50 transition-shadow duration-300">
+        <div class="text-blue-700 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-building"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-blue-700">
+          Datos
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-green-300 flex items-center justify-center shadow-lg group-hover:shadow-green-500/50 transition-shadow duration-300">
+        <div class="text-green-700 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-address-book"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-green-700">
+          Contactos
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-pink-100 to-pink-300 flex items-center justify-center shadow-lg group-hover:shadow-pink-400/50 transition-shadow duration-300">
+        <div class="text-pink-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fab fa-facebook-messenger"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-pink-600">
+          Redes Sociales
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-300 flex items-center justify-center shadow-lg group-hover:shadow-purple-500/50 transition-shadow duration-300">
+        <div class="text-purple-700 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-purple-700">
+          Sobre Nosotros
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-300 flex items-center justify-center shadow-lg group-hover:shadow-yellow-400/50 transition-shadow duration-300">
+        <div class="text-yellow-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-blog"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-yellow-600">
+          Blog
+        </div>
+      </div>
+    </div>
+
+    <!-- Segunda fila -->
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-300 flex items-center justify-center shadow-lg group-hover:shadow-indigo-400/50 transition-shadow duration-300">
+        <div class="text-indigo-700 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-indigo-700">
+          Sede
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-rose-300 flex items-center justify-center shadow-lg group-hover:shadow-rose-400/50 transition-shadow duration-300">
+        <div class="text-rose-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-code-branch"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-rose-600">
+          Sucursal
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-teal-100 to-teal-300 flex items-center justify-center shadow-lg group-hover:shadow-teal-400/50 transition-shadow duration-300">
+        <div class="text-teal-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-warehouse"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-teal-600">
+          Almacén
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-industry"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Planta
+        </div>
+      </div>
+    </div>
+
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shadow-lg group-hover:shadow-gray-400/50 transition-shadow duration-300">
+        <div class="text-gray-800 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-box"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-black">
+          Artículo
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="max-w-7xl mx-auto px-6 pt-12 ">
+  <h2 class="text-4xl font-extrabold text-left text-gray-800 border-l-4 border-green-500 pl-4">
+   Menú de Configuración
+  </h2>
+</div>
+<div class="max-w-7xl mx-auto px-6 pt-12">
+   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-10 justify-items-center">
+    
+    <!-- Marca -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-tag"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Marca
+        </div>
+      </div>
+    </div>
+
+    <!-- Modelo -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-car"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Modelo
+        </div>
+      </div>
+    </div>
+
+    <!-- Tipo -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-cogs"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Tipo
+        </div>
+      </div>
+    </div>
+
+    <!-- Clasificación -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-layer-group"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Clasificación
+        </div>
+      </div>
+    </div>
+
+    <!-- Producto -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-box"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Producto
+        </div>
+      </div>
+    </div>
+
+    <!-- Máquina -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-industry"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Máquina
+        </div>
+      </div>
+    </div>
+
+    <!-- Repuesto -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-tools"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Repuesto
+        </div>
+      </div>
+    </div>
+
+    <!-- Proveedor -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-people-carry"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Proveedor
+        </div>
+      </div>
+    </div>
+
+    <!-- Servicio -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-handshake"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Servicio
+        </div>
+      </div>
+    </div>
+
+    <!-- Cargo -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Cargo
+        </div>
+      </div>
+    </div>
+
+    <!-- Herramienta -->
+    <div class="group transform hover:-translate-y-2 transition-all duration-500">
+      <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-lime-100 to-lime-300 flex items-center justify-center shadow-lg group-hover:shadow-lime-400/50 transition-shadow duration-300">
+        <div class="text-lime-600 text-3xl transition-transform duration-300 group-hover:scale-110">
+          <i class="fas fa-wrench"></i>
+        </div>
+        <div class="absolute -bottom-8 w-full text-center text-sm font-semibold text-gray-800 group-hover:text-lime-600">
+          Herramienta
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<hr class="my-12 border-gray-300">
+<section class="bg-gray-200 py-16 px-6 lg:px-24 min-h-screen flex flex-col md:flex-row">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 items-stretch">
+
+    <!-- Lado Izquierdo (Texto amplio) -->
+    <div class="md:w-2/3 space-y-8">
+      <!-- Título largo -->
+      <h2 class="text-4xl md:text-3xl font-bold text-gray-900 leading-tight">
+        Descubre cómo transformar tu carrera con nuestros programas de aprendizaje virtual personalizados y flexibles
+      </h2>
+
+      <!-- Primer párrafo descriptivo -->
+      <p class="text-gray-700 text-lg leading-relaxed">
+        Nuestra plataforma te ofrece acceso a contenido educativo de alta calidad desde cualquier lugar del mundo. Ya sea que estés comenzando, buscando actualizarte o explorando nuevos horizontes, tenemos opciones para ti. Aprende a tu ritmo, con instructores expertos y una comunidad comprometida con tu crecimiento.
+      </p>
+
+     <!-- Contenedor general con margen superior más grande -->
+<div class="flex flex-row items-start mt-40 space-x-12">
+
+  <!-- Bloque de texto: 50% de ancho -->
+  <div class="w-1/2">
+    <p class="text-gray-700 text-base leading-relaxed">
+      Nuestro equipo está disponible para responder tus preguntas, apoyarte durante el proceso de inscripción y acompañarte en cada paso del camino. No estás solo: estamos contigo desde el primer clic hasta que cumplas tus objetivos.
+    </p>
+  </div>
+
+  <!-- Teléfonos de contacto: 50% de ancho, bien separados -->
+  <div class="w-1/2 mt-10 text-gray-800 font-medium space-y-4">
+  <p class="text-xl font-semibold text-gray-800">
+  +58 424-123-4567
+</p>
+<p class="text-xl font-semibold text-gray-800">
+  +58 212-987-6543
+</p>
+
+  </div>
+
+</div>
+
+    </div>
+
+    <!-- Lado Derecho (Imagen vertical) -->
+    <div class="md:w-1/3 h-full">
+      <img src="public/img/descarga (4).jpeg" alt="Estudiante" class="w-full h-full object-cover">
+    </div>
+  </div>
+</section>
+
+
+<footer class="bg-gray-900 text-gray-300 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+
+    <!-- Logo y Descripción -->
+    <div>
+      <h2 class="text-2xl font-bold text-white mb-3">MecaSystem</h2>
+      <p class="text-sm text-gray-400">Optimizamos la gestión industrial con tecnología de vanguardia. Conecta tus operaciones en un solo sistema.</p>
+    </div>
+
+    <!-- Enlaces -->
+    <div>
+      <h3 class="text-white text-lg font-semibold mb-4">Enlaces útiles</h3>
+      <ul class="space-y-2">
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Inicio</a></li>
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Servicios</a></li>
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Soporte</a></li>
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Contacto</a></li>
+      </ul>
+    </div>
+
+    <!-- Recursos -->
+    <div>
+      <h3 class="text-white text-lg font-semibold mb-4">Recursos</h3>
+      <ul class="space-y-2">
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Documentación</a></li>
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Guías rápidas</a></li>
+        <li><a href="#" class="hover:text-red-500 transition duration-300">Actualizaciones</a></li>
+      </ul>
+    </div>
+
+    <!-- Redes Sociales -->
+    <div>
+      <h3 class="text-white text-lg font-semibold mb-4">Síguenos</h3>
+      <div class="flex space-x-4">
+        <a href="#" class="text-gray-400 hover:text-white transition transform hover:scale-110 duration-300">
+          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M22.23 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24H12v-9.33H9.33V11.3H12V8.43c0-2.65 1.6-4.1 3.95-4.1 1.13 0 2.1.08 2.38.12v2.76H16.3c-1.28 0-1.53.61-1.53 1.5v1.97h3.06l-.4 3.37H14.77V24h7.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.21 0 22.23 0z"/></svg>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-white transition transform hover:scale-110 duration-300">
+          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M23.954 4.57c-.885.392-1.83.656-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.95.555-2.005.959-3.127 1.184-.896-.95-2.178-1.544-3.594-1.544-2.723 0-4.932 2.204-4.932 4.93 0 .39.045.765.127 1.124-4.09-.205-7.719-2.165-10.148-5.144-.425.722-.666 1.56-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.06c0 2.385 1.693 4.374 3.946 4.827-.413.111-.85.17-1.296.17-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.416-1.68 1.318-3.809 2.103-6.102 2.103-.39 0-.779-.023-1.17-.067C2.403 21.743 5.263 22.5 8.29 22.5c9.051 0 14-7.496 14-13.986 0-.21 0-.423-.015-.633.961-.695 1.8-1.56 2.463-2.548l-.047-.02z"/></svg>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-white transition transform hover:scale-110 duration-300">
+          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.056 1.96.24 2.407.403.558.202.96.444 1.385.87.424.424.667.827.87 1.384.163.448.347 1.238.403 2.408.058 1.265.07 1.645.07 4.85s-.012 3.585-.07 4.85c-.056 1.17-.24 1.96-.403 2.407a3.68 3.68 0 01-.87 1.385 3.681 3.681 0 01-1.384.87c-.448.163-1.238.347-2.408.403-1.265.058-1.645.07-4.85.07s-3.585-.012-4.85-.07c-1.17-.056-1.96-.24-2.407-.403a3.68 3.68 0 01-1.385-.87 3.681 3.681 0 01-.87-1.384c-.163-.448-.347-1.238-.403-2.408C2.175 15.788 2.163 15.408 2.163 12s.012-3.585.07-4.85c.056-1.17.24-1.96.403-2.407a3.68 3.68 0 01.87-1.385 3.681 3.681 0 011.384-.87c.448-.163 1.238-.347 2.408-.403C8.415 2.175 8.796 2.163 12 2.163zm0-2.163C8.736 0 8.332.012 7.053.07 5.772.129 4.837.308 4.045.574c-.797.27-1.482.62-2.18 1.318A6.983 6.983 0 00.574 4.045c-.267.792-.446 1.727-.504 3.008C.012 8.332 0 8.736 0 12s.012 3.668.07 4.947c.058 1.281.237 2.216.504 3.008a6.983 6.983 0 001.291 2.18c.698.698 1.383 1.048 2.18 1.318.792.267 1.727.446 3.008.504C8.332 23.988 8.736 24 12 24s3.668-.012 4.947-.07c1.281-.058 2.216-.237 3.008-.504a6.983 6.983 0 002.18-1.291c.698-.698 1.048-1.383 1.318-2.18.267-.792.446-1.727.504-3.008.058-1.279.07-1.683.07-4.947s-.012-3.668-.07-4.947c-.058-1.281-.237-2.216-.504-3.008a6.983 6.983 0 00-1.291-2.18 6.983 6.983 0 00-2.18-1.318c-.792-.267-1.727-.446-3.008-.504C15.668.012 15.264 0 12 0z"/><path d="M12 5.838A6.162 6.162 0 005.838 12 6.162 6.162 0 0012 18.162 6.162 6.162 0 0018.162 12 6.162 6.162 0 0012 5.838zm0 10.324A4.162 4.162 0 017.838 12 4.162 4.162 0 0112 7.838 4.162 4.162 0 0116.162 12 4.162 4.162 0 0112 16.162z"/><circle cx="18.406" cy="5.595" r="1.439"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Créditos -->
+  <div class="mt-10 border-t border-gray-700 pt-6 text-center text-sm text-gray-500">
+    © 2025 MecaSystem. Todos los derechos reservados.
+  </div>
+</footer>
+
+
+</body>
+</html>

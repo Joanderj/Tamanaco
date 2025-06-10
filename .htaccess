@@ -1,0 +1,38 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Base de Reescritura: Ajustada para redirigir desde la raíz hacia `public`
+    RewriteBase /proyecto_tamanaco/
+
+    ###########################################
+    # Redirección de la raíz
+    ###########################################
+    RewriteCond %{REQUEST_URI} ^/proyecto_tamanaco/$
+    RewriteRule ^$ index.php [L] # Acceso directo al archivo principal.
+
+    ###########################################
+    # Acceso directo a páginas específicas
+    ###########################################
+    RewriteRule ^seleccionar-perfil/?$ public/seleccionar_perfil.php [L]
+    RewriteRule ^iniciar-sesion/?$ public/iniciar_sesion.php [L]
+    RewriteRule ^dashboard/?$ public/dashboard.php [L]
+
+    ###########################################
+    # Validaciones de archivos existentes
+    ###########################################
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    ###########################################
+    # Bloqueo de acceso a archivos sensibles
+    ###########################################
+    <FilesMatch "(\.env|\.ini|\.log|\.sh|\.bash)$">
+        Require all denied
+    </FilesMatch>
+
+    ###########################################
+    # Manejo de rutas no válidas
+    ###########################################
+    RewriteRule ^.*$ index.php [QSA,L]
+</IfModule>

@@ -1,0 +1,60 @@
+{
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+    "editor.formatOnPaste": false, //* required
+    "editor.formatOnType": false, //* required
+    "editor.formatOnSaveMode": "file", //* required to format on save
+    "vs-code-prettier-eslint.prettierLast": false, //* set as "true" to run 'prettier' last not first
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "files.associations": {
+      "LICENSE": "text",
+    },
+    "markdownlint.config": {
+      "blanks-around-headings": false,
+      "blanks-around-lists": false,
+      "ul-style": false,
+      "blanks-around-fences": false,
+      "ol-prefix": false,
+      "no-inline-html": false,
+    },
+    "cSpell.language": "en-GB",
+    "cSpell.enabledLanguageIds": [
+      "asciidoc",
+      "c",
+      "cpp",
+      "csharp",
+      "css",
+      "dotenv",
+      "go",
+      "handlebars",
+      "html",
+      "ignore",
+      "jade",
+      "java",
+      "javascript",
+      "javascriptreact",
+      "json",
+      "jsonc",
+      "latex",
+      "less",
+      "markdown",
+      "php",
+      "plaintext",
+      "pug",
+      "python",
+      "restructuredtext",
+      "rust",
+      "scala",
+      "scss",
+      "text",
+      "typescript",
+      "typescriptreact",
+      "yaml",
+      "yml",
+      "COBOL",
+      "ACUCOBOL"
+    ],
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+      "files.trimTrailingWhitespace": false
+    }
+}

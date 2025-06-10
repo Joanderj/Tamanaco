@@ -1,0 +1,1179 @@
+<?php
+session_start();
+
+// Verificar si el usuario está autenticado
+if (!isset($_SESSION['username'])) {
+    header("Location: iniciar_sesion.php");
+    exit();
+}
+
+// Conexión a la base de datos
+$conexion = new mysqli('localhost', 'root', '', 'bd_tamanaco');
+if ($conexion->connect_error) {
+    die("Error de conexión: " . $conexion->connect_error);
+}
+
+// Obtener el id_perfil del usuario actual desde la sesión
+$id_perfil = $_SESSION['id_perfil'];
+
+// Menú actual (empresa.php -> id_menu = 9)
+$menu_actual = 7;
+
+// Verificar si el menú actual está inactivo o el perfil no tiene permisos
+$sql_verificar_menu = "
+    SELECT COUNT(*) AS permiso
+    FROM menus m
+    INNER JOIN perfil_menu pm ON m.id_menu = pm.id_menu
+    WHERE m.id_menu = ? AND pm.id_perfil = ? AND m.id_status = 1 AND pm.id_status = 1
+";
+$stmt_verificar_menu = $conexion->prepare($sql_verificar_menu);
+$stmt_verificar_menu->bind_param("ii", $menu_actual, $id_perfil);
+$stmt_verificar_menu->execute();
+$result_verificar_menu = $stmt_verificar_menu->get_result();
+$permiso_menu = $result_verificar_menu->fetch_assoc();
+
+// Submenú actual: Sede (id_submenu = 8)
+$submenu_actual = 36;
+
+// Verificar si el submenú "Sede" está activo y si el perfil tiene permisos
+$sql_verificar_submenu = "
+    SELECT COUNT(*) AS permiso
+    FROM submenus s
+    INNER JOIN perfil_submenu ps ON s.id_submenu = ps.id_submenu
+    WHERE s.id_submenu = ? AND ps.id_perfil = ? AND s.id_status = 1 AND ps.id_status = 1
+";
+$stmt_verificar_submenu = $conexion->prepare($sql_verificar_submenu);
+$stmt_verificar_submenu->bind_param("ii", $submenu_actual, $id_perfil);
+$stmt_verificar_submenu->execute();
+$result_verificar_submenu = $stmt_verificar_submenu->get_result();
+$permiso_submenu = $result_verificar_submenu->fetch_assoc();
+
+if ($permiso_submenu['permiso'] == 0) {
+    // Si el submenú está inactivo o el perfil no tiene permisos, redirigir a dashboard.php
+    header("Location: dashboard.php");
+    exit();
+}
+
+
+// Consulta para obtener los menús principales (tipo_menu = 1) activos y permitidos
+$sql_principal = "
+    SELECT m.*
+    FROM menus m
+    INNER JOIN perfil_menu pm ON m.id_menu = pm.id_menu
+    WHERE m.id_status = 1 AND pm.id_status = 1 AND pm.id_perfil = ? AND m.tipo_menu = 1
+    ORDER BY m.id_menu
+";
+$stmt_principal = $conexion->prepare($sql_principal);
+$stmt_principal->bind_param("i", $id_perfil);
+$stmt_principal->execute();
+$result_principal = $stmt_principal->get_result();
+
+$menus_principal = [];
+while ($menu = $result_principal->fetch_assoc()) {
+    $menus_principal[] = $menu;
+}
+
+// Consulta para obtener los menús del usuario (tipo_menu = 2) activos y permitidos
+$sql_usuario = "
+    SELECT m.*
+    FROM menus m
+    INNER JOIN perfil_menu pm ON m.id_menu = pm.id_menu
+    WHERE m.id_status = 1 AND pm.id_status = 1 AND pm.id_perfil = ? AND m.tipo_menu = 2
+    ORDER BY m.id_menu
+";
+$stmt_usuario = $conexion->prepare($sql_usuario);
+$stmt_usuario->bind_param("i", $id_perfil);
+$stmt_usuario->execute();
+$result_usuario = $stmt_usuario->get_result();
+
+$menus_usuario = [];
+while ($menu = $result_usuario->fetch_assoc()) {
+    $menus_usuario[] = $menu;
+}
+
+// Consulta para obtener los submenús tipo 1 activos y permitidos
+$sql_submenus_tipo_1 = "
+    SELECT s.nombre_submenu, s.descripcion, s.url_submenu
+    FROM submenus s
+    INNER JOIN perfil_submenu ps ON s.id_submenu = ps.id_submenu
+    WHERE s.id_status = 1 AND ps.id_status = 1 AND ps.id_perfil = ? AND s.tipo_submenu = 1 and s.id_menu = 7
+    ORDER BY s.id_submenu
+";
+$stmt_submenus_tipo_1 = $conexion->prepare($sql_submenus_tipo_1);
+$stmt_submenus_tipo_1->bind_param("i", $id_perfil);
+$stmt_submenus_tipo_1->execute();
+$result_submenus_tipo_1 = $stmt_submenus_tipo_1->get_result();
+
+$submenus_tipo_1 = [];
+while ($submenu = $result_submenus_tipo_1->fetch_assoc()) {
+    $submenus_tipo_1[] = $submenu;
+}
+// Variables para paginación
+$itemsPerPage = isset($_GET['itemsPerPage']) ? (int)$_GET['itemsPerPage'] : 10;
+$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+
+// Recuperar filtros
+$nombreHerramienta = isset($_GET['nombreHerramienta']) ? trim($_GET['nombreHerramienta']) : '';
+$idMarca = isset($_GET['idMarca']) ? (int)$_GET['idMarca'] : '';
+$idModelo = isset($_GET['idModelo']) ? (int)$_GET['idModelo'] : '';
+$idTipo = isset($_GET['idTipo']) ? (int)$_GET['idTipo'] : '';
+
+// Ordenamiento
+$orderBy = 'h.id_herramienta'; // Orden por defecto
+if (isset($_GET['sort'])) {
+    switch ($_GET['sort']) {
+        case 'nombre_asc':
+            $orderBy = 'h.nombre_herramienta ASC';
+            break;
+        case 'nombre_desc':
+            $orderBy = 'h.nombre_herramienta DESC';
+            break;
+    }
+}
+
+// Consulta total de herramientas
+$totalQuery = "SELECT COUNT(*) FROM herramientas h WHERE 1=1";
+$params = [];
+
+if (!empty($nombreHerramienta)) {
+    $totalQuery .= " AND h.nombre_herramienta LIKE ?";
+    $params[] = '%' . $nombreHerramienta . '%';
+}
+
+if (!empty($idMarca)) {
+    $totalQuery .= " AND h.id_marca = ?";
+    $params[] = $idMarca;
+}
+
+if (!empty($idModelo)) {
+    $totalQuery .= " AND h.id_modelo = ?";
+    $params[] = $idModelo;
+}
+
+if (!empty($idTipo)) {
+    $totalQuery .= " AND h.id_tipo = ?";
+    $params[] = $idTipo;
+}
+
+// Preparar y ejecutar la consulta total
+$totalStmt = $conexion->prepare($totalQuery);
+if (!empty($params)) {
+    $totalStmt->bind_param(str_repeat('s', count($params)), ...$params);
+}
+$totalStmt->execute();
+$totalItems = $totalStmt->get_result()->fetch_row()[0];
+$totalPages = ceil($totalItems / $itemsPerPage);
+
+// Consulta de datos
+$query = "SELECT 
+            h.id_herramienta, 
+            h.nombre_herramienta, 
+            h.descripcion, 
+            h.url, 
+            h.nombre_imagen, 
+            h.id_status, 
+            s.nombre_status, 
+            m.nombre_marca, 
+            mo.nombre_modelo, 
+            t.nombre_tipo
+          FROM herramientas h
+          LEFT JOIN status s ON h.id_status = s.id_status
+          LEFT JOIN marca m ON h.id_marca = m.id_marca
+          LEFT JOIN modelo mo ON h.id_modelo = mo.id_modelo
+          LEFT JOIN tipo t ON h.id_tipo = t.id_tipo
+          WHERE 1=1";
+
+// Aplicar filtros
+if (!empty($nombreHerramienta)) {
+    $query .= " AND h.nombre_herramienta LIKE ?";
+}
+
+if (!empty($idMarca)) {
+    $query .= " AND h.id_marca = ?";
+}
+
+if (!empty($idModelo)) {
+    $query .= " AND h.id_modelo = ?";
+}
+
+if (!empty($idTipo)) {
+    $query .= " AND h.id_tipo = ?";
+}
+
+// Agregar orden y límites
+$query .= " ORDER BY $orderBy LIMIT ?, ?";
+$params[] = $offset;
+$params[] = $itemsPerPage;
+
+// Preparar y ejecutar la consulta
+$stmt = $conexion->prepare($query);
+if (!empty($params)) {
+    $stmt->bind_param(str_repeat('s', count($params)), ...$params);
+}
+$stmt->execute();
+$result = $stmt->get_result();
+$herramientas = $result->fetch_all(MYSQLI_ASSOC);
+
+// Cerrar la conexión
+$conexion->close();
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz de Usuario</title>
+    <link href="../public/css/tailwind.min.css" rel="stylesheet">
+    <link href="../public/lib/fontawesome-free-6.7.2-web/css/all.min.css" rel="stylesheet">
+        <!--  CSS -->
+        <link rel="stylesheet" href="../public/css/flatpickr.min.css">
+        <link rel="stylesheet" href="../public/css/all.min.css">
+        <link rel="stylesheet" href="../public/css/main.min.css">
+       <!-- js -->
+       <script src="../public/js/chart.js"></script>
+       <style>
+        /* Animación personalizada */
+        .card {
+            width: 200px;
+            height: 280px;
+            background: #fff;
+            border-top-right-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 14px 26px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease-out;
+            text-decoration: none;
+            margin: 0 auto;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.005) translateZ(0);
+            box-shadow: 0 24px 36px rgba(0, 0, 0, 0.11),
+            0 24px 46px var(--box-shadow-color);
+        }
+
+        .card:hover .overlay {
+            transform: scale(4) translateZ(0);
+        }
+
+        .card:hover .circle {
+            border-color: var(--bg-color-light);
+            background: var(--bg-color);
+        }
+
+        .card:hover .circle:after {
+            background: var(--bg-color-light);
+        }
+
+        .card:hover p {
+            color: var(--text-color-hover);
+        }
+
+        .card p {
+            font-size: 17px;
+            color: #4c5656;
+            margin-top: 20px;
+            z-index: 1000;
+            transition: color 0.3s ease-out;
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease-out;
+        }
+        .circle i {
+            font-size: 40px;
+            color: white;
+            position: relative;
+            z-index: 10;
+            transition: color 0.3s ease-out;
+        }
+        .circle:after {
+            content: "";
+            width: 90px;
+            height: 90px;
+            display: block;
+            position: absolute;
+            background: var(--bg-color);
+            border-radius: 50%;
+            top: 5px;
+            left: 5px;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .overlay {
+            width: 90px;
+            position: absolute;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            top: 50px;
+            left: 50px;
+            z-index: 0;
+            transition: transform 0.3s ease-out;
+        }
+
+        /* Colores personalizados por tipo */
+        .marca { --bg-color: #ceb2fc; --bg-color-light: #f0e7ff; --text-color-hover: #fff; --box-shadow-color: rgba(206, 178, 252, 0.48); }
+        .modelo { --bg-color: #a5d8ff; --bg-color-light: #d6f2ff; --text-color-hover: #fff; --box-shadow-color: rgba(165, 216, 255, 0.48); }
+        .tipo { --bg-color: #ffd700; --bg-color-light: #fffacd; --text-color-hover: #fff; --box-shadow-color: rgba(255, 215, 0, 0.48); }
+        .clasificacion { --bg-color: #ffa07a; --bg-color-light: #ffdab9; --text-color-hover: #fff; --box-shadow-color: rgba(255, 160, 122, 0.48); }
+        .producto { --bg-color: #ff7373; --bg-color-light: #ffb6b6; --text-color-hover: #fff; --box-shadow-color: rgba(255, 115, 115, 0.48); }
+        .maquina { --bg-color: #98fb98; --bg-color-light: #d3fadb; --text-color-hover: #fff; --box-shadow-color: rgba(152, 251, 152, 0.48); }
+        .repuesto { --bg-color: #6a5acd; --bg-color-light: #e6e6fa; --text-color-hover: #fff; --box-shadow-color: rgba(106, 90, 205, 0.48); }
+        .proveedor { --bg-color: #ffa500; --bg-color-light: #ffd580; --text-color-hover: #fff; --box-shadow-color: rgba(255, 165, 0, 0.48); }
+        .servicio { --bg-color: #ff69b4; --bg-color-light: #ffb6c1; --text-color-hover: #fff; --box-shadow-color: rgba(255, 105, 180, 0.48); }
+        .cargo { --bg-color: #c0c0c0; --bg-color-light: #dcdcdc; --text-color-hover: #fff; --box-shadow-color: rgba(192, 192, 192, 0.48); }
+    </style>
+
+    <style>
+      
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            background-color: rgb(255, 255, 255);
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 10;
+        }
+        .user-icon:hover + .user-dropdown {
+            display: block;
+        }
+        .sidebar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+        }
+        .sidebar.active {
+            display: block;
+        }
+
+        /* Mostrar el tooltip solo al pasar el cursor */
+  .menu-item:hover .tooltip {
+      display: block; /* Se hace visible al pasar el cursor */
+  }
+  /* Muestra el tooltip al pasar el cursor */
+  .notifications-icon:hover .tooltip {
+      display: block; /* Se hace visible */
+  }
+    </style>
+</head>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Leer el mensaje de éxito desde la sesión
+$mensaje_exito = isset($_SESSION['mensaje_exito']) ? $_SESSION['mensaje_exito'] : "";
+
+// Limpiar el mensaje de éxito después de mostrarlo
+unset($_SESSION['mensaje_exito']);
+?>
+
+<!-- Mostrar mensaje de éxito si existe -->
+<?php if (!empty($mensaje_exito)): ?>
+    <div class="fixed inset-0 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative">
+            <div class="flex items-center justify-center mb-4">
+                <div class="bg-green-100 p-4 rounded-full shadow-lg animate-pulse">
+                    <i class="fas fa-check-circle text-green-500 text-4xl"></i>
+                </div>
+            </div>
+            <div class="text-center">
+                <h2 class="text-xl font-bold text-green-600 mb-2">¡Éxito!</h2>
+                <p class="text-gray-700"><?= htmlspecialchars($mensaje_exito, ENT_QUOTES, 'UTF-8'); ?></p>
+            </div>
+            <button onclick="this.parentElement.parentElement.style.display='none'" 
+                    class="absolute top-2 right-2 bg-green-500 hover:bg-green-600 text-white rounded-full p-2 focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+<?php endif; ?>
+<header style="background-color: rgb(14, 113, 174);" class="flex items-center justify-between p-4 bg-[rgb(14,113,174)] shadow text-white">
+        <!-- Botón de menú lateral y logo -->
+        <div class="flex items-center">
+            <div class="menu-toggle cursor-pointer text-xl mr-4" onclick="toggleSidebar()">☰</div>
+            <div class="logo flex-shrink-0">
+                <img src="../public/img/logo2.png" alt="Logo Tamanaco" class="h-6 max-w-[100px] w-auto object-contain sm:h-8 sm:max-w-[120px]">
+            </div>
+            <div class="company-name text-white ml-2 font-bold text-lg">Tamanaco</div>
+        </div>
+
+        <!-- Menú de Navegación -->
+        <nav class="absolute inset-x-0 top-0 flex justify-center space-x-6 mt-6">
+            <?php foreach ($menus_principal as $menu): ?>
+                <a href="<?php echo htmlspecialchars($menu['url_menu']); ?>" class="menu-item relative flex items-center space-x-2 hover:text-gray-300">
+                    <i class="fa fa-<?php echo htmlspecialchars($menu['nombre_menu'] == 'Inicio' ? 'home' : ($menu['nombre_menu'] == 'Empleado' ? 'user' : ($menu['nombre_menu'] == 'Inventario' ? 'box' : ($menu['nombre_menu'] == 'Mantenimiento' ? 'tools' : ($menu['nombre_menu'] == 'Reporte' ? 'chart-bar' : 'tasks'))))); ?> text-xl"></i>
+                    <span class="md:block hidden"><?php echo htmlspecialchars($menu['nombre_menu']); ?></span>
+                    <!-- Tooltip -->
+                    <div class="tooltip hidden absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-black text-white px-3 py-1 rounded text-sm z-30">
+                        <?php echo htmlspecialchars($menu['descripcion']); ?>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </nav>
+ 
+<div  class="flex items-center space-x-6">
+    <div class="h-6 w-px bg-white"></div>
+  <!-- Ícono de Notificaciones -->
+  <div class="relative notifications-menu">
+    <div class="notifications-icon cursor-pointer text-xl flex items-center space-x-2" onclick="toggleNotifications()">
+        <i class="fa fa-bell"></i>
+        <i class="fa fa-caret-down"></i> <!-- Flecha hacia abajo -->
+         <!-- Tooltip -->
+         <div class="tooltip hidden absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-black text-white px-3 py-1 rounded text-sm z-30">
+            Notificaciones
+        </div>
+        <!-- Línea vertical al lado del icono de notificaciones -->
+      
+
+    </div>
+
+      <!-- Menú desplegable de Notificaciones -->
+      <div id="notifications-dropdown" class="hidden absolute right-0 mt-4 bg-white shadow-xl p-5 border border-gray-300 rounded-xl w-72 z-20 transition-all duration-300">
+        <!-- Título -->
+        <p class="text-gray-700 font-bold text-center mb-3">Notificaciones:</p>
+        <hr class="border-gray-200 mb-3">
+      
+        <!-- Lista de Notificaciones -->
+        <ul class="space-y-3">
+          <li class="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer">
+            <i class="fa fa-bell text-yellow-500 text-xl"></i>
+            <span class="text-gray-800 font-medium">Notificación 1</span>
+          </li>
+          <li class="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer">
+            <i class="fa fa-bell text-yellow-500 text-xl"></i>
+            <span class="text-gray-800 font-medium">Notificación 2</span>
+          </li>
+          <li class="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer">
+            <i class="fa fa-bell text-yellow-500 text-xl"></i>
+            <span class="text-gray-800 font-medium">Notificación 3</span>
+          </li>
+        </ul>
+      </div>
+  </div>
+
+  <!-- Ícono de Usuario -->
+  <div class="relative user-menu">
+    <div class="user-icon cursor-pointer text-xl flex items-center space-x-2" onclick="toggleUserOptions()">
+        <i class="fa fa-user-circle"></i>
+        <i class="fa fa-caret-down"></i> <!-- Flecha hacia abajo -->
+    </div>
+
+      <!-- Menú desplegable de Usuario -->
+<div id="user-dropdown" class="hidden absolute right-0 mt-4 bg-white shadow-lg p-6 border rounded-lg w-64 z-10">
+   <?php
+// Conexión a la base de datos
+$conexion = new mysqli("localhost", "root", "", "bd_tamanaco");
+
+if ($conexion->connect_error) {
+    die("Error de conexión: " . $conexion->connect_error);
+}
+
+// Obtener datos del usuario
+$usuario = $_SESSION['username'];
+$query = $conexion->prepare("SELECT nombre_imagen, url FROM usuarios WHERE usuario = ?");
+$query->bind_param("s", $usuario);
+$query->execute();
+$query->bind_result($nombre_imagen, $url_imagen);
+$query->fetch();
+$query->close();
+$conexion->close();
+
+// Si no tiene imagen, usar una por defecto
+if (empty($url_imagen)) {
+    $url_imagen = "servidor_img/perfil/default.jpg"; // Imagen por defecto
+}
+?>
+
+<!-- Mostrar imagen de perfil -->
+<div class="flex items-center justify-center mb-4">
+    <?php if (!empty($url_imagen)): ?>
+        <img src="<?php echo htmlspecialchars($url_imagen); ?>" alt="<?php echo htmlspecialchars($nombre_imagen); ?>" class="w-28 h-28 rounded-full border-2 border-blue-500 shadow-xl">
+    <?php else: ?>
+        <span>Sin Imagen</span>
+    <?php endif; ?>
+</div>
+
+<!-- Mostrar nombre de usuario -->
+<span class="block text-center text-lg font-semibold text-gray-700 mb-4">
+    <?php echo htmlspecialchars($_SESSION['nombre_completo']); ?>
+</span>
+
+ 
+    <hr class="border-gray-200 mb-4">
+
+    <!-- Botones dinámicos -->
+    <?php foreach ($menus_usuario as $menu): ?>
+        <?php if ($menu['id_menu'] == 7): ?>
+            <!-- Configuración con estilo amarillo -->
+            <div>
+                <a href="<?php echo htmlspecialchars($menu['url_menu']); ?>" class="flex items-center justify-center space-x-3 py-3 text-yellow-600 font-medium border border-yellow-500 rounded hover:bg-yellow-100 transition duration-200">
+                    <i class="fa fa-cog"></i> <span><?php echo htmlspecialchars($menu['nombre_menu']); ?></span>
+                </a>
+            </div>
+            <hr class="border-gray-200 my-4">
+        <?php else: ?>
+            <!-- Otros botones -->
+            <ul class="space-y-3">
+                <li>
+                    <a href="<?php echo htmlspecialchars($menu['url_menu']); ?>" class="flex items-center justify-center space-x-3 py-2 text-gray-700 font-medium border rounded hover:bg-gray-100 hover:text-gray-900 transition duration-200">
+                        <i class="fa <?php echo $menu['id_menu'] == 8 ? 'fa-user-circle' : 'fa-building'; ?>"></i>
+                        <span><?php echo htmlspecialchars($menu['nombre_menu']); ?></span>
+                    </a>
+                </li>
+                <?php if ($menu['id_menu'] == 8): ?>
+                    <hr class="border-gray-300 my-2">
+                <?php endif; ?>
+            </ul>
+        <?php endif; ?>
+    <?php endforeach; ?>
+
+    <hr class="border-gray-200 my-4">
+
+    <!-- Botón final: Salir -->
+    <div>
+        <a href="salir.php" class="flex items-center justify-center space-x-3 py-3 text-red-600 font-medium border border-red-500 rounded hover:bg-red-100 transition duration-200">
+            <i class="fa fa-sign-out-alt"></i> <span>Salir</span>
+        </a>
+    </div>
+</div>
+
+</header>
+<!-- Menú lateral -->
+<div class="sidebar" id="sidebar">
+    <nav class="flex flex-col p-4 max-w-[300px]">
+        <!-- Título del menú con fondo personalizado -->
+        <h2 style="background-color: rgb(14, 113, 174);" class="text-lg font-bold text-white mb-4 flex items-center p-4 bg-[rgb(14,113,174)] w-full rounded-t-lg">
+            <i class="fa fa-cogs mr-2"></i> Configuración:
+            <!-- Botón de cierre como icono en la esquina superior derecha -->
+            <button class="text-white text-xl ml-auto cursor-pointer hover:text-red-300" onclick="toggleSidebar()">
+                <i class="fa fa-times"></i>
+            </button>
+        </h2>
+        <nav>
+            <?php 
+            foreach ($submenus_tipo_1 as $submenu): 
+                // Define un ícono para cada submenú basado en el nombre
+                $icono = 'fas fa-link'; // Ícono por defecto
+                switch ($submenu['nombre_submenu']) {
+                    case 'Marca':
+                        $icono = 'fas fa-tags';
+                        break;
+                    case 'Modelo':
+                        $icono = 'fas fa-shapes';
+                        break;
+                    case 'Tipo':
+                        $icono = 'fas fa-cube';
+                        break;
+                    case 'Clasificacion':
+                        $icono = 'fas fa-list-alt';
+                        break;
+                    case 'Producto':
+                        $icono = 'fas fa-box';
+                        break;
+                    case 'Máquina':
+                        $icono = 'fas fa-industry';
+                        break;
+                    case 'Repuesto':
+                        $icono = 'fas fa-cogs';
+                        break;
+                    case 'Proveedor':
+                        $icono = 'fas fa-truck';
+                        break;
+                    case 'Servicio':
+                        $icono = 'fas fa-concierge-bell';
+                        break;
+                    case 'Cargo':
+                        $icono = 'fas fa-user-tie';
+                        break;
+                }
+            ?>
+                <a href="<?php echo htmlspecialchars($submenu['url_submenu']); ?>" class="flex items-center py-2 px-2 text-gray-700 hover:text-blue-500 hover:bg-blue-100 rounded transition duration-200">
+                    <i class="<?php echo htmlspecialchars($icono); ?> mr-2"></i> <?php echo htmlspecialchars($submenu['nombre_submenu']); ?>
+                </a>
+            <?php endforeach; ?>
+        </nav>
+    </nav>
+</div>
+        
+</div>
+
+<hr>
+
+
+</div>
+ <!-- Contenedor Principal -->
+ <div class="container mx-auto px-4 py-6">
+<!-- Modal para Detalles de Herramienta -->
+<div id="modalHerramienta" class="hidden fixed inset-0 bg-black bg-opacity-50 justify-center items-center z-50">
+  <div class="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 relative">
+
+    <!-- Botón de cerrar -->
+    <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+      <i class="fas fa-times text-xl"></i>
+    </button>
+
+    <!-- Nombre -->
+    <h2 id="herramientaNombre" class="text-2xl font-bold text-blue-600 mb-2">Nombre de herramienta</h2>
+
+    <!-- Fecha -->
+    <p class="text-sm text-gray-600 mb-2">
+      <strong>Fecha de creación:</strong>
+      <span id="herramientaFecha"></span>
+    </p>
+
+    <!-- Descripción -->
+    <p class="text-gray-700 mb-4" id="herramientaDescripcion">
+      Descripción de la herramienta.
+    </p>
+
+    <!-- Imagen -->
+    <div class="mb-4 flex justify-center">
+      <img id="herramientaImagen" src="" alt="Imagen de herramienta" class="max-h-40 rounded shadow hidden" />
+    </div>
+
+  </div>
+</div>
+
+
+
+    <!-- Botones superiores -->
+    <?php
+include_once 'includes/permisos.php'; // Solo una vez por archivo
+$idPerfil = $_SESSION['id_perfil'];
+$idSubmenu = 36;
+$permisos = obtenerPermisos($idPerfil, $idSubmenu);
+?>
+
+<!-- Botones superiores -->
+<div class="flex justify-between items-center mb-4">
+    <button 
+        class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+        onclick="window.location.href='configuracion.php'">
+        <i class="fas fa-arrow-left"></i> Regresar
+    </button>
+
+    <div class="space-x-2">
+        <?php if (in_array(2, $permisos)): ?>
+            <button 
+                onclick="window.location.href='formulario_guardar_herramienta.php'" 
+                class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                <i class="fas fa-user-plus"></i> Registrar
+            </button>
+        <?php endif; ?>
+
+        <?php if (in_array(4, $permisos)): ?>
+            <button 
+                onclick="window.location.href='imprimir_herramienta.php'" 
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        <?php endif; ?>
+    </div>
+</div>
+  <!-- Filtros -->
+<div class="flex items-center space-x-4 mb-4 border border-gray-300 p-2 rounded-lg">
+   <!-- Input estilizado -->
+<input 
+  type="text" 
+  id="searchInput" 
+  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+  placeholder="Buscar en la tabla..." 
+/>
+
+
+
+    <!-- Botón Filtrar -->
+    <button 
+      id="filterButton" 
+      class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 flex items-center" 
+      onclick="toggleFilterForm()">
+      <i class="fas fa-filter mr-2"></i> Filtrar
+    </button>
+</div>
+<!-- Formulario para filtros -->
+<div id="filterForm" class="hidden mt-2 bg-white border border-gray-300 rounded shadow-lg p-4">
+   <!-- Sección para mostrar filtros guardados -->
+   <div id="savedFilters" class="mt-4">
+        <h4 class="text-lg font-bold mb-2 text-indigo-500">Filtros Guardados</h4>
+        <ul id="filtersList" class="list-disc pl-5"></ul>
+    </div>
+    <h3 class="text-lg font-bold mb-4 text-indigo-500">Opciones de Filtro</h3>
+    <form id="filterOptionsForm" class="space-y-6">
+    <!-- Campo: Nombre del Repuesto -->
+    <div>
+        <label for="nombreRepuesto" class="block text-gray-700 mb-2">Nombre del Repuesto</label>
+        <input 
+            type="text" 
+            id="nombreRepuesto" 
+            class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+            placeholder="Escribe el nombre del repuesto..."
+        />
+    </div>
+
+    <!-- Campo: Marca y Modelo Juntos -->
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Marca -->
+        <div>
+            <label for="idMarca" class="block text-gray-700 mb-2">Marca</label>
+            <select 
+                id="idMarca" 
+                class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+                <option value="">Selecciona una marca</option>
+                <?php
+                // Conexión a la base de datos
+                $conexion = new mysqli("localhost", "root", "", "bd_tamanaco");
+
+                if ($conexion->connect_error) {
+                    die("Conexión fallida: " . $conexion->connect_error);
+                }
+
+                // Consultar las marcas
+                $query = "SELECT id_marca, nombre_marca FROM marca";
+                $result = $conexion->query($query);
+
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        $idMarca = htmlspecialchars($row["id_marca"]);
+                        $nombreMarca = htmlspecialchars($row["nombre_marca"]);
+                        echo "<option value='$idMarca'>$nombreMarca</option>";
+                    }
+                } else {
+                    echo "<option value=''>No hay marcas disponibles</option>";
+                }
+                $conexion->close();
+                ?>
+            </select>
+        </div>
+        <!-- Modelo -->
+        <div>
+            <label for="idModelo" class="block text-gray-700 mb-2">Modelo</label>
+            <select 
+                id="idModelo" 
+                class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+                <option value="">Selecciona un modelo</option>
+                <?php
+                // Conexión a la base de datos
+                $conexion = new mysqli("localhost", "root", "", "bd_tamanaco");
+
+                if ($conexion->connect_error) {
+                    die("Conexión fallida: " . $conexion->connect_error);
+                }
+
+                // Consultar los modelos
+                $query = "SELECT id_modelo, nombre_modelo FROM modelo";
+                $result = $conexion->query($query);
+
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        $idModelo = htmlspecialchars($row["id_modelo"]);
+                        $nombreModelo = htmlspecialchars($row["nombre_modelo"]);
+                        echo "<option value='$idModelo'>$nombreModelo</option>";
+                    }
+                } else {
+                    echo "<option value=''>No hay modelos disponibles</option>";
+                }
+                $conexion->close();
+                ?> 
+            </select>
+        </div>
+    </div>
+
+    <!-- Campo: Fechas Juntas -->
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Fecha Inicio -->
+        <div>
+            <label for="fechaInicio" class="block text-gray-700 mb-2">Fecha Inicio</label>
+            <input 
+                type="date" 
+                id="fechaInicio" 
+                class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+            />
+        </div>
+        <!-- Fecha Final -->
+        <div>
+            <label for="fechaFinal" class="block text-gray-700 mb-2">Fecha Final</label>
+            <input 
+                type="date" 
+                id="fechaFinal" 
+                class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+            />
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="flex justify-between items-center">
+        <div class="flex space-x-2">
+            <!-- Botón Aplicar Filtro -->
+            <button 
+                type="button" 
+                class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
+                onclick="applyFilters()"
+            >
+                Aplicar Filtro
+            </button>
+            <!-- Botón Borrar Filtro -->
+            <button 
+                type="reset" 
+                class="border border-red-500 text-red-500 px-4 py-2 rounded hover:bg-red-50"
+            >
+                Borrar Filtro
+            </button>
+        </div>
+        <!-- Botón Guardar Filtro -->
+        <button 
+            type="button" 
+            class="border border-blue-500 text-blue-500 px-4 py-2 rounded hover:bg-blue-50"
+            onclick="showSaveFilterModal()"
+        >
+            Guardar Filtro
+        </button>
+    </div>
+</form>
+</div>
+
+<!-- Modal para guardar filtro -->
+<div id="saveFilterModal" class="hidden fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+    <div class="bg-white rounded-lg p-6">
+        <h3 class="text-lg font-bold mb-4">Nombre del Filtro</h3>
+        <input type="text" id="filterName" class="border border-gray-300 rounded p-2 w-full" placeholder="Escribe un nombre para el filtro..." />
+        <div class="flex justify-end mt-4">
+            <button class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600" onclick="saveFilter()">Guardar</button>
+            <button class="border border-red-500 text-red-500 px-4 py-2 rounded hover:bg-red-50" onclick="closeSaveFilterModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Contenedor principal con línea alrededor -->
+<div class="border border-gray-300 rounded-lg shadow-md p-4">
+    <!-- Encabezado encima de la tabla -->
+    <div class="flex justify-between items-center mb-4 border-b border-gray-300 pb-2">
+        <h1 class="text-xl font-semibold text-gray-700">Herramientas</h1>
+        <div class="relative">
+            <select id="clasificacion" 
+                    onchange="window.location.href='?sort=' + this.value + '&itemsPerPage=<?php echo $itemsPerPage; ?>&page=1'" 
+                    class="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center appearance-none">
+                <option value="" disabled selected>Clasificar</option>
+                <option value="normal">Normal</option>
+                <option value="fecha_asc">Por fecha más antigua</option>
+                <option value="fecha_desc">Por fecha más reciente</option>
+                <option value="nombre_asc">Por nombre (A-Z)</option>
+                <option value="nombre_desc">Por nombre (Z-A)</option>
+                <option value="numero_asc">Por número más bajo</option>
+                <option value="numero_desc">Por número más alto</option>
+            </select>
+            <i class="fas fa-sort absolute right-4 top-3 text-gray-700 pointer-events-none"></i>
+        </div>
+    </div>
+    
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+  <table class="table-auto w-full border-collapse border border-gray-300 shadow-lg rounded-lg">
+    <thead class="bg-indigo-500 text-white">
+        <tr>
+            <th class="px-6 py-3 text-left font-medium">
+                <span class="flex items-center space-x-2">
+                    <i class="fas fa-image"></i>
+                    <span>Imagen</span>
+                </span>
+            </th>
+            <th class="px-6 py-3 text-left font-medium">
+                <span class="flex items-center space-x-2">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Especificaciones</span>
+                </span>
+            </th>
+            <th class="px-6 py-3 text-left font-medium">
+                <span class="flex items-center space-x-2">
+                    <i class="fas fa-tools"></i>
+                    <span>Acciones</span>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody id="dataTable" class="bg-white divide-y divide-gray-200">
+        <?php foreach ($herramientas as $herramienta): ?>
+        <tr class="hover:bg-gray-100">
+            <!-- Imagen -->
+            <td class="px-6 py-4">
+                <?php if (!empty($herramienta['url'])): ?>
+                    <img src="<?php echo htmlspecialchars($herramienta['url']); ?>" alt="<?php echo htmlspecialchars($herramienta['nombre_imagen']); ?>" class="w-32 h-32 object-cover rounded-md">
+                <?php else: ?>
+                    <span>Sin Imagen</span>
+                <?php endif; ?>
+            </td>
+            <!-- Especificaciones -->
+            <td class="px-6 py-4">
+                <ul>
+                    <li class="flex items-center space-x-2">
+                        <i class="fas fa-id-badge text-indigo-500"></i>
+                        <strong>ID:</strong> <?php echo htmlspecialchars($herramienta['id_herramienta']); ?>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i class="fas fa-wrench text-green-500"></i>
+                        <strong>Nombre:</strong> <?php echo htmlspecialchars($herramienta['nombre_herramienta']); ?>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i class="fas fa-file-alt text-blue-500"></i>
+                        <strong>Descripción:</strong> <?php echo htmlspecialchars($herramienta['descripcion']); ?>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i class="fas fa-industry text-orange-500"></i>
+                        <strong>Marca:</strong> <?php echo htmlspecialchars($herramienta['nombre_marca']); ?>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i class="fas fa-cube text-purple-500"></i>
+                        <strong>Modelo:</strong> <?php echo htmlspecialchars($herramienta['nombre_modelo']); ?>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i class="fas fa-cogs text-red-500"></i>
+                        <strong>Tipo:</strong> <?php echo htmlspecialchars($herramienta['nombre_tipo']); ?>
+                    </li>
+                </ul>
+            </td>
+            <!-- Acciones -->
+            <?php
+include_once 'includes/permisos.php';
+
+$idPerfil = $_SESSION['id_perfil'];
+$idSubmenu = 36; // ID del submenú correspondiente
+$permisos = obtenerPermisos($idPerfil, $idSubmenu);
+?>
+
+<td class="px-6 py-4 flex space-x-2">
+    <?php if ($herramienta['id_status'] == 1): ?>
+        
+        <?php if (in_array(1, $permisos)): ?>
+        <button 
+    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+    onclick="showModal(<?php echo $herramienta['id_herramienta']; ?>)">
+    <i class="fas fa-eye"></i> Ver
+</button>
+
+        <?php endif; ?>
+
+        <?php if (in_array(3, $permisos)): ?>
+        <button 
+            class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" 
+            onclick="window.location.href='formulario_modificar_herramienta.php?id_herramienta=<?php echo $herramienta['id_herramienta']; ?>'">
+            <i class="fas fa-edit"></i> Modificar
+        </button>
+        <?php endif; ?>
+<?php if (in_array(3, $permisos)): ?>
+        <button 
+            class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" 
+            onclick="window.location.href='imprimir_herramienta_individual.php?id_herramienta=<?php echo $herramienta['id_herramienta']; ?>'">
+            <i class="fas fa-edit"></i> Imprimir
+        </button>
+        <?php endif; ?>
+    <?php endif; ?>
+</td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="mt-4 flex items-center justify-between">
+        <div class="flex-1"></div>
+        <div class="flex space-x-2">
+            <a href="?page=<?php echo max(1, $currentPage - 1); ?>&itemsPerPage=<?php echo $itemsPerPage; ?>&sort=<?php echo isset($_GET['sort']) ? $_GET['sort'] : ''; ?>" class="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Anterior
+            </a>
+
+            <?php
+            // Mostrar números de página
+            for ($i = 1; $i <= $totalPages; $i++) {
+                if ($i == $currentPage) {
+                    echo "<button class='bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500'>$i</button>";
+                } elseif ($i <= 3 || $i > $totalPages - 3 || abs($currentPage - $i) < 2) {
+                    echo "<a href='?page=$i&itemsPerPage=$itemsPerPage&sort=" . (isset($_GET['sort']) ? $_GET['sort'] : '') . "' class='border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500'>$i</a>";
+                } elseif ($i == 4 && $currentPage > 5) {
+                    echo "<span class='text-gray-500'>...</span>";
+                }
+            }
+            ?>
+
+            <a href="?page=<?php echo min($totalPages, $currentPage + 1); ?>&itemsPerPage=<?php echo $itemsPerPage; ?>&sort=<?php echo isset($_GET['sort']) ? $_GET['sort'] : ''; ?>" class="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Siguiente
+            </a>
+        </div>
+
+        <!-- Elementos por página a la derecha -->
+        <div class="flex items-center space-x-2 flex-1 justify-end">
+            <label for="itemsPerPage" class="text-gray-600">Elementos por página:</label>
+            <select id="itemsPerPage" onchange="window.location.href='?itemsPerPage=' + this.value + '&page=1&sort=<?php echo isset($_GET['sort']) ? $_GET['sort'] : ''; ?>'" class="border border-blue-500 text-blue-500 px-4 py-2 rounded hover:bg-blue-50">
+                <option value="10" <?php echo $itemsPerPage == 10 ? 'selected' : ''; ?>>10</option>
+                <option value="20" <?php echo $itemsPerPage == 20 ? 'selected' : ''; ?>>20</option>
+                <option value="50" <?php echo $itemsPerPage == 50 ? 'selected' : ''; ?>>50</option>
+                <option value="100" <?php echo $itemsPerPage == 100 ? 'selected' : ''; ?>>100</option>
+                <option value="500" <?php echo $itemsPerPage == 500 ? 'selected' : ''; ?>>500</option>
+                <option value="1000" <?php echo $itemsPerPage == 1000 ? 'selected' : ''; ?>>1000</option>
+            </select>
+            <span class="text-gray-600">Mostrando <?php echo $offset + 1; ?>-<?php echo min($offset + $itemsPerPage, $totalItems); ?> de <?php echo $totalItems; ?></span>
+        </div>
+    </div>
+</div>
+
+
+
+
+  </div>
+  <script>
+// Mostrar/ocultar el formulario de filtros
+function toggleFilterForm() {
+    const form = document.getElementById('filterForm');
+    form.classList.toggle('hidden');
+}
+
+// Función para aplicar filtros
+function applyFilters() {
+    // Obtener los valores de los campos de filtro
+    const nombreRepuesto = document.getElementById('nombreRepuesto').value;
+    const idMarca = document.getElementById('idMarca').value;
+    const idModelo = document.getElementById('idModelo').value;
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFinal = document.getElementById('fechaFinal').value;
+
+    // Redirigir a la misma página con los filtros aplicados como parámetros
+    window.location.href = `?nombreRepuesto=${encodeURIComponent(nombreRepuesto)}&idMarca=${idMarca}&idModelo=${idModelo}&fechaInicio=${fechaInicio}&fechaFinal=${fechaFinal}`;
+}
+
+// Función para filtrar la tabla en tiempo real
+function filterTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('dataTable');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let rowContainsFilter = false;
+
+        for (let j = 0; j < cells.length; j++) {
+            if (cells[j]) {
+                const cellValue = cells[j].textContent || cells[j].innerText;
+                if (cellValue.toLowerCase().indexOf(filter) > -1) {
+                    rowContainsFilter = true;
+                    break;
+                }
+            }
+        }
+
+        if (rowContainsFilter) {
+            rows[i].style.display = ""; // Mostrar la fila
+        } else {
+            rows[i].style.display = "none"; // Ocultar la fila
+        }
+    }
+}
+
+// Asignar evento al campo de búsqueda
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('keyup', filterTable);
+
+    // Capturar el evento de presionar una tecla en el campo de búsqueda
+    searchInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            const searchValue = this.value;
+            // Redirigir a la página con el parámetro de búsqueda
+            window.location.href = window.location.pathname + `?nombreRepuesto=${encodeURIComponent(searchValue)}`;
+        }
+    });
+}
+</script>
+  <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('active');
+    }
+  
+    function toggleNotifications() {
+        const notificationsDropdown = document.getElementById('notifications-dropdown');
+        notificationsDropdown.classList.toggle('hidden');
+    }
+  
+    function toggleUserOptions() {
+        const userDropdown = document.getElementById('user-dropdown');
+        userDropdown.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>
+
+<script>
+function showModal(idHerramienta) {
+    fetch(`getHerramientaDetalles.php?id_herramienta=${encodeURIComponent(idHerramienta)}`)
+        .then(response => {
+            if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !data.nombreHerramienta || !data.fechaCreacion) {
+                throw new Error("Datos incompletos");
+            }
+
+            // Actualizar elementos del modal
+            document.getElementById('herramientaNombre').textContent = data.nombreHerramienta;
+            document.getElementById('herramientaFecha').textContent = new Date(data.fechaCreacion).toLocaleString();
+            document.getElementById('herramientaDescripcion').textContent = data.descripcion || "Sin descripción disponible";
+
+            // Imagen
+            const img = document.getElementById('herramientaImagen');
+            if (data.imagen && data.imagen.trim() !== '') {
+                img.src = 'servidor_img/herramientas/' + data.imagen;
+                img.alt = data.nombreHerramienta;
+                img.classList.remove('hidden');
+            } else {
+                img.src = '';
+                img.alt = '';
+                img.classList.add('hidden');
+            }
+
+            // Mostrar el modal
+            const modal = document.getElementById('modalHerramienta');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`Ocurrió un error: ${error.message}`);
+        });
+}
+
+function closeModal() {
+    const modal = document.getElementById('modalHerramienta');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
+
+

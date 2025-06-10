@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso de Configuración | Tamanaco</title>
+  <link href="public/css/tailwind.min.css" rel="stylesheet">
+  <link href="public/lib/fontawesome-free-6.7.2-web/css/all.min.css" rel="stylesheet">
+   <style>
+    .nav-link {
+      position: relative;
+      font-size: 1.125rem; /* text-lg */
+      font-weight: 600;
+      padding-bottom: 4px;
+      color: #4B5563; /* gray-700 */
+      transition: color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: #dc2626; /* red-600 */
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background-color: #dc2626; /* red-600 */
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .nav-link.active {
+      color: #dc2626;
+    }
+
+    .nav-link.active::after {
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <!-- Header -->
+   <!-- HEADER CON MENÚ -->
+  <header class="bg-white shadow-sm border-b-4 border-red-600">
+    <div class="container mx-auto px-6 py-5 flex justify-between items-center">
+      
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <img src="public/img/logo2.jpg" alt="Tamanaco Logo" class="h-8">
+      </div>
+
+      <!-- Menú de navegación -->
+      <nav class="flex gap-8">
+        <a href="#" class="nav-link active">Configuración del Sistema</a>
+        <a href="curso_autogestion.html" class="nav-link">Autogestión y Permisos</a>
+        <a href="curso_mantenimiento.html" class="nav-link">Gestión de Mantenimientos</a>
+      </nav>
+    </div>
+  </header>
+
+ <!-- Título de Introducción con fondo rojo claro y animación -->
+<section class="bg-red-50 py-10 px-6">
+  <div class="max-w-5xl mx-auto text-center fade-in-up">
+    <p class="mt-4 text-lg md:text-xl text-gray-700 font-medium">
+      Domina desde la estructura empresarial hasta los catálogos técnicos con un enfoque profesional e integral.
+    </p>
+  </div>
+</section>

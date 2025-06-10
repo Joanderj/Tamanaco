@@ -1,0 +1,14 @@
+/node_modules/
+/lib/*
+!/lib/libphonenumber
+/.sass-cache/
+/.grunt/
+/tmp/
+/vendor/
+/.idea/
+*.iml
+.DS_Store
+/build/js/i18n/types.js
+
+# these files are now auto-generated
+/src/img/
