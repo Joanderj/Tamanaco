@@ -206,7 +206,7 @@ $totalItems = $totalStmt->get_result()->fetch_row()[0];
 $totalPages = ceil($totalItems / $itemsPerPage);
 
 // Consulta de datos
-$query = "SELECT DISTINCT a.id_almacen,a.nombre,s.nombre as sucursal,st.nombre_status
+$query = "SELECT DISTINCT a.id_almacen,a.nombre,s.nombre as sucursal,st.nombre_status,st.id_status
  FROM almacen a 
  INNER JOIN sucursal s ON a.id_sucursal = s.id_sucursal
  INNER JOIN status st ON a.id_status = st.id_status
@@ -628,6 +628,13 @@ if (empty($url_imagen)) {
 </div>
 
 </div>
+<?php
+include_once 'includes/permisos.php'; // Solo una vez por archivo
+$idPerfil = $_SESSION['id_perfil'];
+$idSubmenu = 8;
+$permisos = obtenerPermisos($idPerfil, $idSubmenu);
+?>
+
  <!-- Contenedor Principal -->
  <div class="container mx-auto px-4 py-6">
 
@@ -640,9 +647,11 @@ if (empty($url_imagen)) {
         <button  onclick="window.location.href='formulario_almacen.php'" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
           <i class="fas fa-user-plus"></i> Registrar
         </button>
-        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+         <?php if (in_array(4, $permisos)): ?>
+        <button  onclick="window.location.href='imprimir_almacen.php'" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
           <i class="fas fa-print"></i> Imprimir
         </button>
+         <?php endif; ?>
       </div>
     </div>
   <!-- Filtros -->
@@ -872,18 +881,28 @@ if (empty($url_imagen)) {
                     <td class="px-6 py-4"><?php echo $almace['sucursal']; ?></td>
                     <td class="px-6 py-4"><?php echo $almace['nombre_status']; ?></td>
                     <td class="px-6 py-4 flex space-x-2">
+                         <?php if ($almace['id_status'] == 1): ?>
+                         <?php if (in_array(1, $permisos)): ?>
                     <button 
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         onclick="showModal(<?php echo $almace['id_almacen']; ?>)">
         <i class="fas fa-eye"></i> Ver
     </button>
+     <?php endif; ?>
+      <?php if (in_array(3, $permisos)): ?>
     <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" 
     onclick="window.location.href='formulario_modificar_almacen.php?id_almacen=<?php echo $almace['id_almacen']; ?>'">
     <i class="fas fa-edit"></i> Modificar
 </button>
-                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                            <i class="fas fa-print"></i> Imprimir
-                        </button>
+<?php endif; ?>
+ <?php if (in_array(3, $permisos)): ?>
+                        <button 
+                onclick="window.location.href='imprimir_detalles_almacen.php?almacen=<?php echo $almace['id_almacen']; ?>'" 
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+                        <?php endif; ?>
+                <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
