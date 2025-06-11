@@ -644,7 +644,7 @@ $permisos = obtenerPermisos($idPerfil, $idSubmenu);
         <i class="fas fa-arrow-left"></i> Regresar
       </button>
       <div class="space-x-2">
-        <button  onclick="window.location.href='formulario_almacen.php'" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+        <button  onclick="window.location.href='formulario_almacene.php'" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
           <i class="fas fa-user-plus"></i> Registrar
         </button>
          <?php if (in_array(4, $permisos)): ?>
